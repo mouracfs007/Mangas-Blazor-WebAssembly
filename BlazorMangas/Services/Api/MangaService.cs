@@ -28,6 +28,31 @@ public class MangaService : IMangaService
         _options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
     }
 
+    public async Task<IEnumerable<MangaDTO>> GetMangasPorTitulo(string titulo)
+    {
+        try
+        {
+            var httpClient = _httpClientFactory.CreateClient("ApiMangas");
+            var response = await httpClient.GetAsync(apiEndpoint + "search/" + titulo);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<IEnumerable<MangaDTO>>();
+            }
+            else
+            {
+                var message = await response.Content.ReadAsStringAsync();
+                _logger.LogError($"Erro ao obter mangás com titulo {titulo} - {message}");
+                throw new Exception($"Status Code : {response.StatusCode} - {message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Erro ao obter o mangá pelo titulo={titulo} \n\n {ex.Message}");
+            throw;
+        }
+    }
+
     public async Task<MangaPaginacaoResponseDTO> GetMangasPaginacao(int pagina,
         int quantidadePorPagina)
     {
